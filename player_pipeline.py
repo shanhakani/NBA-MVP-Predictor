@@ -22,6 +22,7 @@ for team in teams:
 
 	# Transform Data - Filter data based on minimum season stats from previous MVP winners
 	df.rename(columns={'Unnamed: 1':'Name'}, inplace=True )
+	df = df.drop(['Rk'], axis=1) # Removes Rank Column
 
 	for key, val in min_mvp_stats.items():
 		df = df[df[key] > val[0]]
@@ -33,7 +34,9 @@ for team in teams:
 
 print()
 mvp_candidates = mvp_candidates.sort_values(by=['PTS/G'], ascending = False)
-mvp_candidates = mvp_candidates.reset_index(drop = True)
+mvp_candidates = mvp_candidates.reset_index(drop = True) # Resets index
+mvp_candidates = mvp_candidates.reset_index(drop = False) # Create new column to use as Player ID (primary key of players table)
+mvp_candidates.rename(columns={'index':'Player ID'}, inplace = True)
 print(mvp_candidates)
 
 # Load Data to PostgreSQL Database
