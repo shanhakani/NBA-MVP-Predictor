@@ -35,7 +35,7 @@ for team in teams:
 print()
 mvp_candidates = mvp_candidates.sort_values(by=['PTS/G'], ascending = False)
 mvp_candidates = mvp_candidates.reset_index(drop = True) # Resets index
-print(mvp_candidates)
+print(mvp_candidates.to_string())
 
 # Load Data to PostgreSQL Database
 
