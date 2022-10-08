@@ -35,8 +35,6 @@ for team in teams:
 print()
 mvp_candidates = mvp_candidates.sort_values(by=['PTS/G'], ascending = False)
 mvp_candidates = mvp_candidates.reset_index(drop = True) # Resets index
-mvp_candidates = mvp_candidates.reset_index(drop = False) # Create new column to use as Player ID (primary key of players table)
-mvp_candidates.rename(columns={'index':'Player ID'}, inplace = True)
 print(mvp_candidates)
 
 # Load Data to PostgreSQL Database
