@@ -1,6 +1,8 @@
-import pandas as pd
 import requests
+import pandas as pd
 import numpy as np
+import psycopg2
+from sqlalchemy import create_engine
 
 # Create mapping for Team Name to Team ID
 team_mapping = {'Atlanta Hawks': 'ATL', 'Brooklyn Nets': 'BRK', 'Boston Celtics': 'BOS', 'Charlotte Hornets': 'CHO',
@@ -30,8 +32,54 @@ teams = pd.concat([east, west]) # Merge dataframes to load into Postgres
 teams = teams.reset_index(drop = False)
 teams.rename(columns={'index':'Ranking'}, inplace = True) # Extracts index to get team's rank in conference
 teams['Team Name'] = teams['Team Name'].str.replace('*', '', regex = False) # Removes asterisk used to identify playoff qualifying team on basketball-reference.com
+teams = teams.replace('—', 0.0)
 teams.insert(0, 'Team ID', [team_mapping[name] for name in teams['Team Name'].to_list()]) # Maps team name to Team ID and creates new column
+teams.rename(columns = {'Team ID' : 'team_id', 'Ranking' : 'ranking', 'Conference' : 'conference', 'Team Name' : 'team_name',
+ 'W' : 'wins', 'L' : 'losses', 'W/L%' : 'win_loss_pct', 'GB' : 'gb', 'PS/G' : 'ppg', 'PA/G' : 'opponent_ppg', 
+ 'SRS' : 'ppg_difference'}, inplace = True)
 
 print(teams)
 
-# Load to Postgres
+# Load to PostgreSQL Database
+
+# Create a .txt file in directory where first line is password (protection for public remote repository)
+f = open("account.txt","r")
+lines = f.readlines()
+password = lines[0]
+f.close()
+
+conn_string = f'postgresql://postgres:{password}@127.0.0.1/nba'
+  
+db = create_engine(conn_string)
+conn = db.connect()
+conn1 = psycopg2.connect(database = "nba", user = 'postgres', password = password, host='127.0.0.1', port= '5432')
+  
+conn1.autocommit = True
+cursor = conn1.cursor()
+  
+# Drop both tables if already exist (teams table is foreign key to mvp_candidates table, so we must drop both)
+cursor.execute('drop table if exists mvp_candidates, teams')
+  
+# Create Teams Table
+sql = '''CREATE TABLE IF NOT EXISTS teams (
+    team_id VARCHAR(3) PRIMARY KEY,
+    ranking INT NOT NULL,
+    conference VARCHAR(4) NOT NULL,
+    team_name VARCHAR(50) NOT NULL,
+    wins INT NOT NULL,
+    losses INT NOT NULL,
+    win_loss_pct NUMERIC NOT NULL,
+    gb NUMERIC,
+    ppg NUMERIC NOT NULL,
+    opponent_ppg NUMERIC NOT NULL,
+    ppg_difference NUMERIC NOT NULL
+);'''
+  
+cursor.execute(sql)
+
+teams.to_sql('teams', conn, index = False ,if_exists = 'append')
+
+conn1.commit()
+conn1.close()
+
+print('Loaded to Postgres')

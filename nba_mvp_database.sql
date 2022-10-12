@@ -1,3 +1,5 @@
+drop table if exists mvp_candidates, teams;
+
 CREATE TABLE IF NOT EXISTS teams (
 	team_id VARCHAR(3) PRIMARY KEY,
 	ranking INT NOT NULL,
@@ -13,7 +15,7 @@ CREATE TABLE IF NOT EXISTS teams (
 );
 
 CREATE TABLE IF NOT EXISTS mvp_candidates (
-	player_id SERIAL PRIMARY KEY,
+	player_id INT PRIMARY KEY,
 	team VARCHAR(3) NOT NULL,
 	player_name VARCHAR(50) NOT NULL,
 	age INT NOT NULL,
@@ -22,7 +24,7 @@ CREATE TABLE IF NOT EXISTS mvp_candidates (
 	mp NUMERIC NOT NULL,
 	fg NUMERIC NOT NULL,
 	fga NUMERIC NOT NULL,
-	fg_precent NUMERIC NOT NULL,
+	fg_pct NUMERIC NOT NULL,
 	three_point NUMERIC NOT NULL,
 	three_pa NUMERIC NOT NULL,
 	three_pct NUMERIC NOT NULL,
